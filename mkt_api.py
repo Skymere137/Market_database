@@ -50,16 +50,19 @@ class MktDBAPI():
         @self.app.get("/ping")
         def ping():
             return {"status": "ok"}
+        
 # Route for retrieving data from database
         @self.app.get("/get_data/{ticker}/{tf}")
-        def get_table_data(ticker: str, tf: str):
+        def get_table_data(ticker: str, tf: str, limit: int=1000):
             try:
                 conn = db_controllers.establish_connection()
                 logger.info(ticker.lower())
                 data = db_controllers.get_data(conn, self.current_model["row"], ticker.lower(), tf)
                 logger.info("Data found, returning now!")
                 formatted = self.format_candles(data)
-                return formatted
+                return_data = formatted[-limit:]
+                logger.info(f"Returning {len(return_data)} candles out of {len(formatted)}")
+                return return_data
             except Exception as e:
                 print(e)
                 return None

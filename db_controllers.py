@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def establish_connection():
     conn = psycopg2.connect(
-    dbname="market_data",
+    dbname="Market-Data",
     user=os.environ["psqluser"],
     password=os.environ["psqlpass"],
     host="localhost",
@@ -31,7 +31,7 @@ def sanitize(name: str) -> str:
 def create_table(conn, symbol: str, timeframe: str, table_name=None):
     symbol_s = sanitize(symbol)
     timeframe_s = sanitize(timeframe)
-    table_name = f"candles_{symbol_s}_{timeframe_s}"
+    table_name = f"{symbol_s}_{timeframe_s}"
 
     query = sql.SQL("""
     CREATE TABLE IF NOT EXISTS {} (
@@ -56,7 +56,7 @@ def create_table(conn, symbol: str, timeframe: str, table_name=None):
 def insert_to_meta_table(conn, symbol, timeframe):
     symbol_s = sanitize(symbol)
     timeframe_s = sanitize(timeframe)
-    table_name = f"candles_{symbol_s}_{timeframe_s}"
+    table_name = f"{symbol_s}_{timeframe_s}"
 
     meta_sql = """
     INSERT INTO candle_meta (symbol, timeframe, table_name)
@@ -72,7 +72,7 @@ def insert_to_meta_table(conn, symbol, timeframe):
 def establish_table_existence(conn, symbol, timeframe):
     symbol_s = sanitize(symbol)
     timeframe_s = sanitize(timeframe)
-    table_name = f"candles_{symbol_s}_{timeframe_s}"
+    table_name = f"{symbol_s}_{timeframe_s}"
 
     meta_query = """
     SELECT table_name 
@@ -109,7 +109,7 @@ def establish_table_existence(conn, symbol, timeframe):
 def get_last_date(conn, symbol, timeframe):
     symbol_s = sanitize(symbol)
     timeframe_s = sanitize(timeframe)
-    table_name = f"candles_{symbol_s}_{timeframe_s}"
+    table_name = f"{symbol_s}_{timeframe_s}"
 
     query = sql.SQL("""
     SELECT MAX(ts)
@@ -136,7 +136,7 @@ def get_last_date(conn, symbol, timeframe):
 # Basic query functions
 # GET
 def get_data(conn, data, ticker, tf):
-    table = f"candles_{ticker}_{tf}"
+    table = f"{ticker}_{tf}"
     query = f"""SELECT {data} FROM {table} ORDER BY ts ASC"""
     with conn.cursor() as cur:
         cur.execute(query)
@@ -144,7 +144,7 @@ def get_data(conn, data, ticker, tf):
         return rows
 # POST
 def insert_data(conn, ticker, tf, data):
-    table_name = f"candles_{ticker}_{tf}"
+    table_name = f"{ticker}_{tf}"
     query = f"""INSERT INTO {table_name} (ts, open, close, high, low, volume)
     VALUES (%s, %s, %s, %s, %s, %s)
     ON CONFLICT (ts) DO NOTHING;
@@ -162,7 +162,7 @@ def insert_data(conn, ticker, tf, data):
         ))
         conn.commit()
 def insert_data_batch(conn, ticker: str, tf: str, candles: List[Dict[str, Any]]):
-    table_name = f"candles_{sanitize(ticker)}_{sanitize(tf)}"
+    table_name = f"{sanitize(ticker)}_{sanitize(tf)}"
     data_tuples = []
 
     for candle in candles:
